@@ -1,13 +1,23 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Col, ListGroup, Row, Image, Form, Button } from "react-bootstrap";
+import {
+  Col,
+  ListGroup,
+  Row,
+  Image,
+  Form,
+  Button,
+  Card,
+} from "react-bootstrap";
 import { Loader } from "../components/Loader";
 import { Message } from "../components/Message";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { addToCart } from "../actions/cartActions";
 
 export default function CartScreen({}) {
   const { id: productId } = useParams();
+  const navigate = useNavigate();
+
   const qty = location.search ? Number(location.search.split("=")[1]) : 1;
 
   const dispatch = useDispatch();
@@ -15,13 +25,19 @@ export default function CartScreen({}) {
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
 
-  console.log({ cartItems });
-
   useEffect(() => {
     if (productId) {
       dispatch(addToCart(productId, qty));
     }
   }, [dispatch, productId, qty]);
+
+  const removeFromCartHandler = (id: string) => {
+    console.log("Removing");
+  };
+
+  const checkoutHandler = () => {
+    navigate("/login?redirect=shipping");
+  };
 
   return (
     <Row>
@@ -64,7 +80,7 @@ export default function CartScreen({}) {
                     <Button
                       type="button"
                       variant="light"
-                      // onClick={() => removeFromCartHandler(item.product)}
+                      onClick={() => removeFromCartHandler(item.product)}
                     >
                       <i className="fas fa-trash"></i>
                     </Button>
@@ -75,8 +91,33 @@ export default function CartScreen({}) {
           </ListGroup>
         )}
       </Col>
-      <Col md={2}></Col>
-      <Col md={2}></Col>
+      <Col md={4}>
+        <Card>
+          <ListGroup variant="flush">
+            <ListGroup.Item>
+              <h2>
+                Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)})
+                items
+              </h2>
+              $
+              {cartItems
+                .reduce((acc, item) => acc + item.qty * item.price, 0)
+                .toFixed(2)}
+            </ListGroup.Item>
+            <ListGroup.Item style={{ textAlign: "center" }}>
+              <Button
+                type="button"
+                className="btn-block"
+                disabled={cartItems.length === 0}
+                onClick={checkoutHandler}
+                style={{ width: "100%" }}
+              >
+                Proceed To Checkout
+              </Button>
+            </ListGroup.Item>
+          </ListGroup>
+        </Card>
+      </Col>
     </Row>
   );
 }
